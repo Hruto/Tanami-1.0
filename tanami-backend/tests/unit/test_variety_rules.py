@@ -34,9 +34,7 @@ def test_create_plant_menerima_varietas_bebas_tanpa_commodity_code() -> None:
         label="Pohon Mangga",
         variety="Mangga Arumanis",
         nursery_started_at=date.today() - timedelta(days=10),
-        placement="indoor",
     )
     assert "commodity_code" not in payload.model_dump()
     assert payload.variety == "Mangga Arumanis"
-    assert payload.placement == "indoor"
     assert payload.derived_commodity == "mango"  # hasil turunan, bukan input

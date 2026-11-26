@@ -55,8 +55,8 @@ Everything in `design.md` section 10 is implemented and checked by `tests/contra
 
 | Requirement | Endpoints |
 |---|---|
-| R0 Tambah Kebun | `GET/POST /farms`, `GET/PATCH /farms/{id}` (tanpa `DELETE`; `placement` per tanaman), `/regions/search`, `/regions/resolve` |
-| R1 Tracking | `GET /plant-types`, `POST /farms/{id}/plants` atau `POST /farms/{id}/plants/with-photo` (multipart + thumbnail), `GET/PATCH /plants/{id}` (`age_days`, `next_watering_on`, `placement`), `PATCH /plants/{id}/irrigation`, `GET /plants/{id}/irrigation/history`, `GET /plants/{id}/irrigation-advice`, `GET /plants/{id}/progress`, `/plants/{id}/photos`, `/plants/{id}/care-logs`, `POST /plants/{id}/end` |
+| R0 Tambah Kebun | `GET/POST /farms`, `GET/PATCH /farms/{id}` (tanpa `DELETE`) |
+| R1 Tracking | `GET /plant-types`, `POST /farms/{id}/plants` atau `POST /farms/{id}/plants/with-photo` (multipart + thumbnail), `GET/PATCH /plants/{id}` (`age_days`, `next_watering_on`), `PATCH /plants/{id}/irrigation`, `GET /plants/{id}/irrigation/history`, `GET /plants/{id}/irrigation-advice`, `GET /plants/{id}/progress`, `/plants/{id}/photos`, `/plants/{id}/care-logs`, `POST /plants/{id}/end` |
 | R2 History Tracking | `GET /plants?status=ended`, `GET /plants/{id}`, `GET /plants/{id}/timeline` |
 | R3 Deteksi | `POST /scans` (wajib `plant_id`), `GET /scans`, `GET /scans/{id}`, `POST /scans/{id}/confirm-disease` |
 | R4 History Deteksi | `GET /scans?status=&commodity_code=&disease_code=&plant_id=&from=&to=`, `PUT /scans/{id}/feedback`, `DELETE /scans/{id}` |
@@ -98,7 +98,7 @@ Behaviour worth knowing:
 | Job | When (WIB) | What |
 |---|---|---|
 | `fetch_weather` | 06:00, 18:00 | Fresh BMKG forecast per village with an active farm, spaced to stay under 60 req/min |
-| `generate_reminders` | 06:15, 18:15 | `fungal_risk`, `harvest_soon`, `heavy_rain_harvest`, `heat_stress` (outdoor gardens only) |
+| `generate_reminders` | 06:15, 18:15 | `fungal_risk`, `harvest_soon`, `heavy_rain_harvest`, `heat_stress` |
 | `care_reminders` | 06:30 | `watering` (irrigation schedule), `photo` (user period), `monitoring` (no activity) for active tracked plants |
 | `scan_followup` | 07:00 | Sick/at-risk plants not rescanned for 5 days |
 | `dispatch_pushes` | hourly :05 | Pushes deferred by quiet hours |

@@ -25,12 +25,12 @@ Sesuai `design.md` v2:
 
 | Fitur | Ringkasan |
 |---|---|
-| **Kebun dan tanaman** | Daftarkan kebun (indoor/outdoor) dan tanaman: jenis, jenis bibit, tanggal tanam, jumlah. Satu tanaman bisa satu pohon atau satu kelompok/bedengan. |
+| **Kebun dan tanaman** | Daftarkan kebun dan tanaman: jenis, jenis bibit, tanggal tanam, jumlah. Satu tanaman bisa satu pohon atau satu kelompok/bedengan. |
 | **Tracking dan perkiraan panen** | Fase (belum berbuah / masa berbuah), perkiraan panen berikutnya **berupa rentang tanggal**, dan akhir masa produktif. Semua dihitung dari profil agronomi, **bukan model ML**. Panen dicatat bertahap: panen ke-1, ke-2, dan seterusnya. |
 | **Scan penyakit daun** | Pilih tanaman, foto daun, lalu dapat nama penyakit, keyakinan (%), gejala, pencegahan, dan penanganan. Penyakit yang dikonfirmasi petani bisa memundurkan perkiraan panen. |
 | **Riwayat Tanaman** | Tanaman yang selesai atau dihentikan, dengan status akhir (Selesai / Dihentikan / Gagal panen), jumlah panen, alasan, dan penyakitnya. |
 | **Riwayat Scan** | Semua hasil scan dengan filter jenis tanaman, penyakit, dan tanaman. |
-| **Pengingat** | Siram, foto, pemantauan, tindak lanjut penyakit, panen sudah dekat, dan cuaca BMKG untuk kebun outdoor. |
+| **Pengingat** | Siram, foto, pemantauan, tindak lanjut penyakit, panen sudah dekat, dan cuaca BMKG. |
 | **Forum** | Diskusi per jenis tanaman; hasil scan bisa dibagikan; ahli terverifikasi diberi lencana. |
 | **Ruang kerja tim** | Web untuk ahli, moderator, dan admin: tinjau hasil deteksi, basis penyakit, laporan forum, pengguna, pengumuman. |
 

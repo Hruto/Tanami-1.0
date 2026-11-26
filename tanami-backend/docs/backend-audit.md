@@ -90,7 +90,7 @@ Setelah audit, backend disesuaikan dengan *Requirements Aplikasi Deteksi dan Tra
 
 | Requirement | Yang ditambahkan / diubah |
 |---|---|
-| R0 Kebun | `placement` indoor/outdoor; nama kelurahan di respons; reminder cuaca hanya untuk kebun outdoor |
+| R0 Kebun | nama kelurahan di respons; reminder cuaca memakai prakiraan BMKG bila tersedia |
 | R1 Tracking | Katalog jenis tanaman (`GET /plant-types`), `irrigation_schedule`, umur otomatis (`age_days`), foto perkembangan, catatan perawatan (siram = riwayat penyiraman), jadwal siram berikutnya, `POST /plants/{id}/end` dengan alasan dan hasil akhir (4 kategori, atau dari persentase) |
 | R2 History Tracking | `GET /plants?status=ended`, detail dengan lokasi dan alasan, timeline berisi foto, perawatan, deteksi terhubung, panen, dan pengakhiran; tanaman yang diakhiri hanya-baca |
 | R3-R4 Deteksi | Tabel `detection_plants` terpisah dari tanaman tracking; scan dengan `detection_plant_id`; hasil memuat nama penyakit, `confidence_percent`, gejala, saran penanganan lengkap; akhiri dan aktifkan kembali tanpa kehilangan riwayat; opsional terhubung ke tanaman tracking |

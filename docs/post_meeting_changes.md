@@ -8,7 +8,7 @@ Semua perubahan ini sudah diterapkan langsung di `main`, diverifikasi dengan 309
 |---|---|
 | `commodity_code` dikirim klien | `variety` (teks bebas, mis. `Mangga Arumanis`); komoditas diturunkan backend |
 | `planted_at` jadi dasar umur | `nursery_started_at` (estimasi mulai pembibitan) jadi dasar umur; `planted_at` opsional |
-| `placement` di kebun | `placement` di tiap tanaman (`indoor`/`outdoor`) |
+| `placement` di kebun | tidak ada; konsep indoor/outdoor dihapus (migrasi `0010`) |
 | `DELETE /plants/{id}`, `DELETE /farms/{id}` (archive) | dihapus; pakai `POST /plants/{id}/end` |
 | `quality_note` string | `quality` = `gagal` / `kurang_optimal` / `normal` / `panen_raya` |
 | tidak ada persen panen | `success_pct` dihitung backend |
@@ -21,7 +21,7 @@ Semua perubahan ini sudah diterapkan langsung di `main`, diverifikasi dengan 309
 |---|---|---|
 | `PATCH` | `/api/v1/plants/{id}/irrigation` | `{ "schedule": "daily", "reason": "cuaca panas" }` |
 | `GET` | `/api/v1/plants/{id}/irrigation/history` | riwayat perubahan jadwal (terbaru dulu) |
-| `GET` | `/api/v1/plants/{id}/irrigation-advice` | saran sistem; `weather_used: false` untuk indoor |
+| `GET` | `/api/v1/plants/{id}/irrigation-advice` | saran sistem; `weather_used` menandai prakiraan BMKG dipakai |
 | `GET` | `/api/v1/plants/{id}/progress` | umur, fase, `%` menuju panen pertama, estimasi tanggal, delay penyakit |
 
 ## Create tanaman (form Tambah Tanaman)
@@ -34,13 +34,12 @@ Content-Type: application/json
   "label": "Pohon Mangga",
   "variety": "Mangga Arumanis",
   "nursery_started_at": "2026-11-01",
-  "placement": "indoor",
   "irrigation_schedule": "every_3_5_days"
 }
 ```
 
 Respons memuat `age_days` (dihitung dari `nursery_started_at`), `commodity_label`,
-`placement`, dan `cover_photo_url`.
+dan `cover_photo_url`.
 
 Untuk form **Tambah Tanaman** yang mengirim foto sekaligus, pakai endpoint
 multipart (satu panggilan). Foto yang dikirim langsung menjadi sampul:
@@ -52,7 +51,6 @@ Content-Type: multipart/form-data
 label=Pohon Mangga
 variety=Mangga Arumanis
 nursery_started_at=2026-11-01
-placement=indoor
 irrigation_schedule=every_3_5_days
 photo=@daun.jpg
 ```
@@ -69,7 +67,8 @@ aplikasi; backend hanya menerima file JPG/PNG (batas ukuran & resolusi sesuai
 
 - `variety` bebas, tetapi harus menyebut `mangga`, `jeruk`, atau `tomat`;
   selain itu ditolak 400.
-- `placement: indoor` → backend **tidak** memanggil BMKG; saran irigasi statis.
+- Cuaca BMKG dipakai bila prakiraan tersedia; `weather_used` bernilai `true`
+  saat prakiraan dipakai.
 - `success_pct = quantity_kg / target_panen_komiditas × 100`; kategori
   `quality` diturunkan dari persen itu. Jika keduanya dikirim dan tidak cocok,
   respons 400.
@@ -83,6 +82,7 @@ aplikasi; backend hanya menerima file JPG/PNG (batas ukuran & resolusi sesuai
 ## Migrasi
 
 `migrations/versions/0006_post_meeting.py` — menambah
-`plants.nursery_started_at`, `plants.placement`, tabel `irrigation_changes`,
-serta `harvest_records.quality` dan `harvest_records.success_pct`. Kolom lama
-`farms.placement` dan `farms.archived_at` sengaja dibiarkan agar downgrade aman.
+`plants.nursery_started_at`, tabel `irrigation_changes`, serta
+`harvest_records.quality` dan `harvest_records.success_pct`.
+`migrations/versions/0010_remove_placement.py` — menghapus `farms.placement`
+dan `plants.placement` beserta CHECK/index; konsep indoor/outdoor tidak dipakai lagi.

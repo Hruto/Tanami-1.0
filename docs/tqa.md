@@ -19,7 +19,7 @@ Dokumen ini adalah kesepakatan tim tentang standar kualitas teknis. Semua keputu
 
 | Kode | Fitur |
 |---|---|
-| R0 | Tambah Kebun: nama, lokasi kelurahan, indoor/outdoor |
+| R0 | Tambah Kebun: nama, lokasi kelurahan |
 | R1 | Tracking Tanaman: jenis, jenis bibit, tanggal tanam + umur otomatis, jumlah, foto, jadwal irigasi, perkiraan panen dari profil tanaman, catat panen ke-n, akhiri tracking sebelum masa produktif habis |
 | R2 | Riwayat Tanaman: daftar, detail, status akhir (selesai/dihentikan/gagal panen), alasan, penyakit, riwayat perkembangan |
 | R3 | Scan Penyakit Daun: pilih tanaman terdaftar + foto, hasil (penyakit, keyakinan %, gejala, pencegahan, saran), konfirmasi penyakit yang dapat memundurkan perkiraan panen |
@@ -32,7 +32,7 @@ R1, R3, dan R4 di atas menyimpang dari dokumen requirement asli dan menunggu per
 
 **Prioritas rilis MVP:** R0 + R1 + R3, lalu R2 + R4, lalu R6 + R7, lalu R5. Rincian di `design.md` bagian 3.
 
-**Fitur tambahan yang tidak disebut requirement:** reminder cuaca BMKG (hanya kebun outdoor) dan Cek cepat (scan tanpa simpan). Keduanya tidak boleh menghambat rilis R0-R7. Scan kematangan buah **dipensiunkan** di v2.
+**Fitur tambahan yang tidak disebut requirement:** reminder cuaca BMKG dan Cek cepat (scan tanpa simpan). Keduanya tidak boleh menghambat rilis R0-R7. Scan kematangan buah **dipensiunkan** di v2.
 
 **Di luar ruang lingkup MVP:** tanaman selain mangga/jeruk/tomat, scan penyakit buah/bunga, scan kematangan, prediksi jumlah panen, sensor IoT, marketplace saprotan, prediksi harga pasar, peta sebaran penyakit.
 

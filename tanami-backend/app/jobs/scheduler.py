@@ -36,7 +36,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logging import get_logger
 from app.core.metrics import JOB_RUNS
 from app.core.state import AppState
-from app.domain import Placement
 from app.models.farm import Farm
 from app.services.care_reminders import build_care_reminders, load_care_contexts
 from app.services.maintenance import decay_stale_health, purge_deleted_accounts
@@ -203,11 +202,9 @@ async def run_account_purge(state: AppState, *, now: datetime | None = None) -> 
 async def _farm_ids_for_village(session: AsyncSession, adm4_code: str) -> list[UUID]:
     rows = (
         await session.execute(
-            # Weather rules make no sense for an indoor garden (requirement 0).
             select(Farm.id).where(
                 Farm.adm4_code == adm4_code,
                 Farm.archived_at.is_(None),
-                Farm.placement == Placement.OUTDOOR.value,
             )
         )
     ).scalars()

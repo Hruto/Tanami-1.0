@@ -18,7 +18,6 @@ from app.domain import (
     HealthStatus,
     IrrigationSchedule,
     LifecyclePhase,
-    Placement,
     PlantingMaterial,
     TrackingEndReason,
     TrackingOutcome,
@@ -135,7 +134,6 @@ class PlantCreate(ApiModel):
     nursery_started_at: date
     # Tanggal pindah ke lahan; bila kosong, disamakan dengan nursery_started_at.
     planted_at: date | None = None
-    placement: Placement = Placement.OUTDOOR
     # Omitted: the default material of the commodity (grafted, or seed for tomato).
     planting_material: PlantingMaterial | None = None
     quantity: int = Field(default=1, ge=1, le=100_000)
@@ -194,7 +192,6 @@ class PlantUpdate(ApiModel):
     variety: str | None = Field(default=None, max_length=80)
     nursery_started_at: date | None = None
     planted_at: date | None = None
-    placement: Placement | None = None
     planting_material: PlantingMaterial | None = None
     quantity: int | None = Field(default=None, ge=1, le=100_000)
     irrigation_schedule: IrrigationSchedule | None = None
@@ -209,7 +206,6 @@ class PlantUpdate(ApiModel):
         for name in (
             "nursery_started_at",
             "planted_at",
-            "placement",
             "planting_material",
             "quantity",
             "irrigation_schedule",
@@ -280,7 +276,6 @@ class PlantOut(ApiModel):
     last_scan_at: datetime | None = None
     # Location shown in the history detail.
     farm_name: str
-    placement: Placement
     adm4_code: str
     village: str | None = None
     # Tracking end (design 8.6).
@@ -488,7 +483,7 @@ class IrrigationChangeOut(ApiModel):
 
 
 class IrrigationAdviceOut(ApiModel):
-    """Saran sistem; untuk indoor cuaca sengaja tidak dipakai."""
+    """Saran sistem; cuaca dipakai bila prakiraan tersedia."""
 
     recommended: IrrigationSchedule
     weather_used: bool
@@ -507,4 +502,3 @@ class PlantProgressOut(ApiModel):
     estimated_first_harvest: date | None = None
     delay_days: int = 0
     harvest_count: int = 0
-    weather_used: bool = True

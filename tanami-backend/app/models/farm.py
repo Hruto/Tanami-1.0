@@ -29,7 +29,6 @@ from app.domain import (
     TRACKING_END_REASONS_V2,
     HealthStatus,
     IrrigationSchedule,
-    Placement,
     PlantingMaterial,
     TrackingOutcome,
 )
@@ -60,10 +59,6 @@ class Farm(Base):
     lat: Mapped[Decimal | None] = mapped_column(Numeric(9, 6), nullable=True)
     lon: Mapped[Decimal | None] = mapped_column(Numeric(9, 6), nullable=True)
     area_m2: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
-    # Requirement 0: indoor or outdoor. Weather rules only apply outdoors.
-    placement: Mapped[str] = mapped_column(
-        String(16), nullable=False, server_default=Placement.OUTDOOR.value
-    )
 
     archived_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
@@ -81,7 +76,6 @@ class Farm(Base):
         CheckConstraint("lat IS NULL OR (lat >= -90 AND lat <= 90)", name="lat_range"),
         CheckConstraint("lon IS NULL OR (lon >= -180 AND lon <= 180)", name="lon_range"),
         CheckConstraint("area_m2 IS NULL OR area_m2 > 0", name="area_positive"),
-        enum_check("placement", Placement, name="placement"),
         Index("ix_farms_user_created", "user_id", "created_at"),
     )
 
@@ -118,10 +112,6 @@ class Plant(Base):
     # Pasca-rapat: umur dihitung dari estimasi awal pembibitan, bukan tanam ke lahan.
     nursery_started_at: Mapped[date] = mapped_column(Date, nullable=False)
     planted_at: Mapped[date] = mapped_column(Date, nullable=False)
-    # Pasca-rapat: indoor/outdoor melekat pada tanaman, bukan kebun.
-    placement: Mapped[str] = mapped_column(
-        String(16), nullable=False, server_default=Placement.OUTDOOR.value, index=True
-    )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("1"))
     # planted_at + the profile's productive years; tracking ends by itself then.
     productive_until: Mapped[date] = mapped_column(Date, nullable=False)
@@ -166,7 +156,6 @@ class Plant(Base):
         enum_check("planting_material", PlantingMaterial, name="planting_material"),
         enum_check("health_status", HealthStatus, name="health_status"),
         enum_check("irrigation_schedule", IrrigationSchedule, name="irrigation_schedule"),
-        enum_check("placement", Placement, name="placement"),
         values_check("end_reason", TRACKING_END_REASONS_V2, name="end_reason"),
         enum_check("outcome", TrackingOutcome, name="outcome"),
         CheckConstraint("(ended_at IS NULL) = (end_reason IS NULL)", name="ended_with_reason"),

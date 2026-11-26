@@ -138,13 +138,6 @@ class EstimateConfidence(StrEnum):
     HIGH = "high"
 
 
-class Placement(StrEnum):
-    """Where a garden is (requirement 0)."""
-
-    INDOOR = "indoor"
-    OUTDOOR = "outdoor"
-
-
 class IrrigationSchedule(StrEnum):
     """Watering frequency of a tracked plant (requirement 1)."""
 

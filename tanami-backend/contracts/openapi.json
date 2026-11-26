@@ -160,10 +160,6 @@
             ],
             "title": "Photo"
           },
-          "placement": {
-            "$ref": "#/components/schemas/Placement",
-            "default": "outdoor"
-          },
           "planted_at": {
             "anyOf": [
               {
@@ -3053,7 +3049,7 @@
       },
       "IrrigationAdviceOut": {
         "additionalProperties": false,
-        "description": "Saran sistem; untuk indoor cuaca sengaja tidak dipakai.",
+        "description": "Saran sistem; cuaca dipakai bila prakiraan tersedia.",
         "properties": {
           "note": {
             "anyOf": [
@@ -3966,15 +3962,6 @@
         "title": "PhotoOut",
         "type": "object"
       },
-      "Placement": {
-        "description": "Where a garden is (requirement 0).",
-        "enum": [
-          "indoor",
-          "outdoor"
-        ],
-        "title": "Placement",
-        "type": "string"
-      },
       "PlantAttention": {
         "additionalProperties": false,
         "properties": {
@@ -4026,10 +4013,6 @@
             "format": "date",
             "title": "Nursery Started At",
             "type": "string"
-          },
-          "placement": {
-            "$ref": "#/components/schemas/Placement",
-            "default": "outdoor"
           },
           "planted_at": {
             "anyOf": [
@@ -4308,9 +4291,6 @@
               }
             ]
           },
-          "placement": {
-            "$ref": "#/components/schemas/Placement"
-          },
           "planted_at": {
             "format": "date",
             "title": "Planted At",
@@ -4382,7 +4362,6 @@
           "health_status",
           "irrigation_schedule",
           "farm_name",
-          "placement",
           "adm4_code",
           "status",
           "ended_at",
@@ -4442,11 +4421,6 @@
             "format": "date",
             "title": "Productive Until",
             "type": "string"
-          },
-          "weather_used": {
-            "default": true,
-            "title": "Weather Used",
-            "type": "boolean"
           }
         },
         "required": [
@@ -4573,16 +4547,6 @@
               }
             ],
             "title": "Nursery Started At"
-          },
-          "placement": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Placement"
-              },
-              {
-                "type": "null"
-              }
-            ]
           },
           "planted_at": {
             "anyOf": [
@@ -9563,7 +9527,7 @@
     },
     "/api/v1/plants/{plant_id}/irrigation-advice": {
       "get": {
-        "description": "Indoor tidak memanggil BMKG; outdoor memakai prakiraan cuaca.",
+        "description": "Prakiraan BMKG dipakai bila tersedia.",
         "operationId": "irrigation_advice_api_v1_plants__plant_id__irrigation_advice_get",
         "parameters": [
           {

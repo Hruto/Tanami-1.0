@@ -43,7 +43,6 @@ classDiagram
         +id: UUID
         +user_id: UUID
         +name: str
-        +legacy_placement: str
     }
     class Plant {
         +id: UUID
@@ -54,7 +53,6 @@ classDiagram
         +commodity_code: str
         +nursery_started_at: date
         +planted_at: date
-        +placement: str
         +irrigation_schedule: str
         +productive_until: date
         +ended_at: date
@@ -238,7 +236,7 @@ classDiagram
     PlantService --> StorageProvider : stored photo
     ScanService --> VisionProvider : predicts
     ReminderService --> PushProvider : notifies
-    PlantService --> WeatherProvider : outdoor advice
+    PlantService --> WeatherProvider : weather advice
 ```
 
 Versi teks: `AppError` adalah induk semua error (`ValidationError`, `NotFound`,
@@ -346,7 +344,7 @@ atau disepakati (lihat `docs/data-integration.md` §3.5).
 
 ## 5. Kenapa ini OOP, bukan DFD
 
-- **Encapsulation:** state tanaman (umur, placement, jadwal siram) melekat di
+- **Encapsulation:** state tanaman (umur, jadwal siram) melekat di
   objek `Plant`, bukan variabel global.
 - **Inheritance:** `AppError` → 10 turunan dengan status HTTP masing-masing;
   `Base` → semua tabel.

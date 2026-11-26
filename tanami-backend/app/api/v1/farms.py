@@ -28,7 +28,6 @@ from app.domain import (
     MATERIALS_BY_COMMODITY,
     CareAction,
     IrrigationSchedule,
-    Placement,
     PlantingMaterial,
 )
 from app.models.content import CropProfile
@@ -143,7 +142,6 @@ async def create_plant_with_photo(
     settings: SettingsDep,
     photo: Annotated[UploadFile | None, File()] = None,
     planted_at: Annotated[date | None, Form()] = None,
-    placement: Annotated[Placement, Form()] = Placement.OUTDOOR,
     irrigation_schedule: Annotated[IrrigationSchedule, Form()] = IrrigationSchedule.EVERY_3_5_DAYS,
     quantity: Annotated[int, Form()] = 1,
     planting_material: Annotated[PlantingMaterial | None, Form()] = None,
@@ -166,7 +164,6 @@ async def create_plant_with_photo(
         variety=variety,
         nursery_started_at=nursery_started_at,
         planted_at=planted_at,
-        placement=placement,
         irrigation_schedule=irrigation_schedule,
         quantity=quantity,
         planting_material=planting_material,
@@ -343,7 +340,7 @@ async def irrigation_advice(
     service: PlantServiceDep,
     weather: WeatherServiceDep,
 ) -> Envelope[IrrigationAdviceOut]:
-    """Indoor tidak memanggil BMKG; outdoor memakai prakiraan cuaca."""
+    """Prakiraan BMKG dipakai bila tersedia."""
     return Envelope(data=await service.irrigation_advice(user.id, plant_id, weather))
 
 

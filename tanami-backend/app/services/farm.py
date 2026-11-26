@@ -27,7 +27,6 @@ from app.domain import (
     HarvestQuality,
     HealthStatus,
     IrrigationSchedule,
-    Placement,
     PushState,
     ReminderStatus,
     TrackingEndReason,
@@ -398,7 +397,6 @@ class PlantService:
             variety=payload.variety,
             label=payload.label,
             nursery_started_at=payload.nursery_started_at,
-            placement=payload.placement.value,
             planted_at=payload.planted_at,
             quantity=payload.quantity,
             productive_until=until,
@@ -422,8 +420,6 @@ class PlantService:
             data["planting_material"] = material
         if "irrigation_schedule" in data:
             data["irrigation_schedule"] = data["irrigation_schedule"].value
-        if "placement" in data:
-            data["placement"] = data["placement"].value
 
         if "planted_at" in data or "planting_material" in data:
             planted_at = data.get("planted_at", plant.planted_at)
@@ -1007,7 +1003,6 @@ class PlantService:
             cover_photo_url=self.storage.public_url(cover) if cover and self.storage else None,
             last_scan_at=last_scan,
             farm_name=farm.name,
-            placement=plant.placement,
             adm4_code=farm.adm4_code,
             village=village,
             status="ended" if plant.ended_at else "active",
@@ -1106,14 +1101,8 @@ class PlantService:
     async def irrigation_advice(
         self, user_id: UUID, plant_id: UUID, weather: WeatherService | None = None
     ) -> IrrigationAdviceOut:
-        """Indoor tidak memakai cuaca; outdoor memakai prakiraan BMKG bila ada."""
+        """Cuaca dipakai bila prakiraan BMKG tersedia."""
         plant = await self.get_active_plant(user_id, plant_id)
-        if plant.placement == Placement.INDOOR.value:
-            return IrrigationAdviceOut(
-                recommended=IrrigationSchedule.EVERY_3_5_DAYS,
-                weather_used=False,
-                note="Tanaman indoor: cuaca tidak dipertimbangkan.",
-            )
         if weather is not None:
             forecast = await weather.for_farm(user_id, plant.farm_id)
             slots = [slot for day in forecast.days for slot in day.slots]
@@ -1164,7 +1153,6 @@ class PlantService:
             estimated_first_harvest=first,
             delay_days=estimate.delay_days if estimate else 0,
             harvest_count=facts.harvest_count,
-            weather_used=plant.placement == Placement.OUTDOOR.value,
         )
 
 

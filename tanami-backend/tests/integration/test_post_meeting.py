@@ -1,4 +1,4 @@
-"""Perubahan pasca-rapat: varietas bebas, umur pembibitan, indoor, panen, irigasi."""
+"""Perubahan pasca-rapat: varietas bebas, umur pembibitan, panen, irigasi."""
 
 from __future__ import annotations
 
@@ -22,7 +22,6 @@ async def test_add_tanaman_memakai_varietas_bebas_dan_tanggal_pembibitan(
             "label": "Pohon Mangga",
             "variety": "Mangga Arumanis",
             "nursery_started_at": (TODAY - timedelta(days=30)).isoformat(),
-            "placement": "indoor",
         },
         headers=headers,
     )
@@ -30,7 +29,6 @@ async def test_add_tanaman_memakai_varietas_bebas_dan_tanggal_pembibitan(
     plant = response.json()["data"]
     assert plant["variety"] == "Mangga Arumanis"
     assert plant["commodity_label"] == "Mangga"
-    assert plant["placement"] == "indoor"
     assert plant["age_days"] == 30
     assert plant["planted_at"] == plant["nursery_started_at"]
 
@@ -102,7 +100,7 @@ async def test_irigasi_bisa_diubah_dan_riwayatnya_tersimpan(client: AsyncClient)
     assert history.json()["data"][0]["to_schedule"] == "daily"
 
 
-async def test_endpoint_progress_dan_saran_irigasi_indoor(client: AsyncClient) -> None:
+async def test_endpoint_progress_dan_saran_irigasi(client: AsyncClient) -> None:
     headers = auth_headers(await register(client))
     farm = await create_farm(client, headers)
     plant = (
@@ -112,7 +110,6 @@ async def test_endpoint_progress_dan_saran_irigasi_indoor(client: AsyncClient) -
                 "label": "Mangga 2",
                 "variety": "Mangga Arumanis",
                 "nursery_started_at": (TODAY - timedelta(days=100)).isoformat(),
-                "placement": "indoor",
             },
             headers=headers,
         )
@@ -126,7 +123,7 @@ async def test_endpoint_progress_dan_saran_irigasi_indoor(client: AsyncClient) -
 
     advice = await client.get(f"/api/v1/plants/{plant['id']}/irrigation-advice", headers=headers)
     assert advice.status_code == 200, advice.text
-    assert advice.json()["data"]["weather_used"] is False
+    assert advice.json()["data"]["weather_used"] is True
 
 
 async def test_create_tanaman_dengan_thumbnail_satu_panggilan(client: AsyncClient) -> None:
@@ -139,7 +136,6 @@ async def test_create_tanaman_dengan_thumbnail_satu_panggilan(client: AsyncClien
             "label": "Pohon Mangga",
             "variety": "Mangga Arumanis",
             "nursery_started_at": (TODAY - timedelta(days=7)).isoformat(),
-            "placement": "indoor",
             "irrigation_schedule": "daily",
         },
         files={"photo": ("thumb.jpg", image_bytes(), "image/jpeg")},

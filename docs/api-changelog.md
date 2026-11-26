@@ -2,7 +2,7 @@
 
 Catatan resmi untuk tim frontend dan ML. Dua commit yang mendasari dokumen ini:
 
-- `2a53bea` — varietas bebas, umur pembibitan, placement per tanaman, progress panen, irigasi, kualitas panen
+- `2a53bea` — varietas bebas, umur pembibitan, progress panen, irigasi, kualitas panen
 - `22831aa` — create tanaman sekali kirim dengan thumbnail
 
 Kontrak tergenerate: `contracts/openapi.json` (**67 path**). Jangan menyalin contoh dari `docs/design.md` yang lama tanpa mengecek file ini.
@@ -15,7 +15,7 @@ Kontrak tergenerate: `contracts/openapi.json` (**67 path**). Jangan menyalin con
 |---|---|---|---|
 | Jenis tanaman | `commodity_code: "mango"` | `variety: "Mangga Arumanis"` (teks bebas) | klien kirim varietas, komoditas diturunkan backend |
 | Dasar umur | `planted_at` | `nursery_started_at` (estimasi mulai pembibitan) | klien kirim tanggal, umur & persen dihitung backend |
-| Lokasi tanaman | `placement` di Farm | `placement` di Plant | klien kirim per tanaman |
+| Penempatan | `placement` di Farm | tidak ada; konsep indoor/outdoor dihapus | klien tidak mengirim field apa pun |
 | Archive | `DELETE /plants/{id}`, `DELETE /farms/{id}` | dihapus; `POST /plants/{id}/end` | klien pakai end-tracking |
 | Thumbnail | dua panggilan | satu panggilan multipart | `photo` dikirim bareng create |
 | Hasil panen | `quality_note` string | `quality` (4 kategori) + `success_pct` | backend hitung persen & kategori |
@@ -43,7 +43,7 @@ Kontrak tergenerate: `contracts/openapi.json` (**67 path**). Jangan menyalin con
 | `POST` | `/api/v1/farms/{farm_id}/plants/with-photo` | create + upload thumbnail dalam satu kiriman |
 | `PATCH` | `/api/v1/plants/{plant_id}/irrigation` | ubah jadwal siraman |
 | `GET` | `/api/v1/plants/{plant_id}/irrigation/history` | riwayat perubahan jadwal, terbaru dulu |
-| `GET` | `/api/v1/plants/{plant_id}/irrigation-advice` | saran sistem (`weather_used: false` untuk indoor) |
+| `GET` | `/api/v1/plants/{plant_id}/irrigation-advice` | saran sistem; `weather_used` menandai prakiraan BMKG dipakai |
 | `GET` | `/api/v1/plants/{plant_id}/progress` | umur, fase, persen menuju panen, delay penyakit |
 | `POST` | `/api/v1/users/me/avatar` | unggah foto profil (multipart `photo`) |
 | `DELETE` | `/api/v1/users/me/avatar` | hapus foto profil |
@@ -52,10 +52,10 @@ Kontrak tergenerate: `contracts/openapi.json` (**67 path**). Jangan menyalin con
 
 | Method | Path | Perubahan |
 |---|---|---|
-| `POST` | `/api/v1/farms` | `placement` tidak diterima lagi |
-| `PATCH` | `/api/v1/farms/{id}` | `placement` tidak diterima lagi |
+| `POST` | `/api/v1/farms` | tidak ada field `placement` |
+| `PATCH` | `/api/v1/farms/{id}` | tidak ada field `placement` |
 | `POST` | `/api/v1/farms/{id}/plants` | field baru; `commodity_code` ditolak |
-| `PATCH` | `/api/v1/plants/{id}` | menerima `variety`, `nursery_started_at`, `placement` |
+| `PATCH` | `/api/v1/plants/{id}` | menerima `variety`, `nursery_started_at` |
 | `POST` | `/api/v1/plants/{id}/harvests` | `quality` + `quantity_kg` + `note`; `quality_note` ditolak |
 | `PATCH` | `/api/v1/plants/{id}/harvests/{harvest_id}` | sama seperti di atas |
 | `PATCH` | `/api/v1/users/me` | menerima `current_password` + `new_password`; respons `data.tokens` saat sandi diganti; `UserOut.avatar_url` |
@@ -72,7 +72,6 @@ Content-Type: application/json
   "label": "Pohon Mangga",
   "variety": "Mangga Arumanis",
   "nursery_started_at": "2026-11-01",
-  "placement": "indoor",
   "irrigation_schedule": "every_3_5_days"
 }
 ```
@@ -86,7 +85,6 @@ Content-Type: multipart/form-data
 label=Pohon Mangga
 variety=Mangga Arumanis
 nursery_started_at=2026-11-01
-placement=indoor
 irrigation_schedule=every_3_5_days
 photo=@daun.jpg
 ```
@@ -105,7 +103,6 @@ final req = http.MultipartRequest('POST', uri)
   ..fields['label'] = label
   ..fields['variety'] = variety
   ..fields['nursery_started_at'] = nurseryDate.toIso8601String().substring(0, 10)
-  ..fields['placement'] = placement
   ..files.add(await http.MultipartFile.fromPath('photo', photoPath));
 final res = await req.send();
 ```
@@ -117,7 +114,7 @@ final res = await req.send();
 2. `nursery_started_at` tidak boleh di masa depan. `planted_at` tidak boleh lebih awal dari
    tanggal pembibitan; kalau kosong, disamakan backend.
 3. `age_days` dihitung dari `nursery_started_at`, bukan `planted_at`.
-4. `placement: indoor` → backend tidak memanggil BMKG; `weather_used: false` pada saran irigasi.
+4. Cuaca BMKG dipakai bila prakiraan tersedia; `weather_used` bernilai `true` saat prakiraan dipakai.
 5. `success_pct = quantity_kg ÷ target_komoditas × 100`. Kategori `quality` diturunkan dari persen:
    `<20` → `gagal`, `20–<70` → `kurang_optimal`, `70–100` → `normal`, `>100` → `panen_raya`.
    Kalau klien mengirim `quality` yang bertentangan dengan `quantity_kg` → `400`.

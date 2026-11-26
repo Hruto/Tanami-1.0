@@ -288,7 +288,6 @@ async def populate(state: AppState) -> None:
                     json={
                         "name": rng.choice(["Kebun Belakang", "Lahan Sawah Timur", "Pekarangan"]),
                         "adm4_code": rng.choice(REGIONS),
-                        "placement": "outdoor" if index % 4 else "indoor",
                     },
                     headers=headers,
                 )

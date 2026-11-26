@@ -23,7 +23,6 @@ Dokumen ini mencatat tabel, kolom, kunci asing, indeks, dan constraint yang bena
 | `ResultStatus` | `confident`, `uncertain`, `unknown`, `invalid_image` |
 | `CauseCategory` | `healthy`, `fungus`, `bacteria`, `virus`, `pest`, `nutrient_deficiency`, `unknown` |
 | `HealthStatus` | `healthy`, `at_risk`, `sick`, `recovering`, `unknown` |
-| `Placement` | `indoor`, `outdoor` |
 | `PlantingMaterial` | `grafted`, `seed`, `other` |
 | `IrrigationSchedule` | `daily`, `every_3_5_days`, `weekly`, `never` |
 | `LifecyclePhase` | `juvenile`, `productive` |
@@ -114,12 +113,11 @@ erDiagram
 | `lat` | NUMERIC(9, 6) | yes |  |  |
 | `lon` | NUMERIC(9, 6) | yes |  |  |
 | `area_m2` | NUMERIC(12, 2) | yes |  |  |
-| `placement` | VARCHAR(16) | no | outdoor |  |
 | `archived_at` | timestamptz | yes |  |  |
 | `created_at` | timestamptz | no | now() |  |
 | `updated_at` | timestamptz | no | now() |  |
 
-**Constraints:** `ck_farms_lon_range`: `lon IS NULL OR (lon >= -180 AND lon <= 180)`; `ck_farms_name_not_blank`: `length(trim(name)) > 0`; `ck_farms_area_positive`: `area_m2 IS NULL OR area_m2 > 0`; `ck_farms_placement`: `placement IN ('indoor', 'outdoor')`; `ck_farms_lat_range`: `lat IS NULL OR (lat >= -90 AND lat <= 90)`.
+**Constraints:** `ck_farms_lon_range`: `lon IS NULL OR (lon >= -180 AND lon <= 180)`; `ck_farms_name_not_blank`: `length(trim(name)) > 0`; `ck_farms_area_positive`: `area_m2 IS NULL OR area_m2 > 0`; `ck_farms_lat_range`: `lat IS NULL OR (lat >= -90 AND lat <= 90)`.
 
 **Indexes:** `ix_farms_user_created` (`user_id, created_at`); `ix_farms_user_id` (`user_id`); `ix_farms_adm4_code` (`adm4_code`).
 
@@ -137,7 +135,6 @@ erDiagram
 | `label` | VARCHAR(120) | no |  |  |
 | `nursery_started_at` | DATE | no |  |  |
 | `planted_at` | DATE | no |  |  |
-| `placement` | VARCHAR(16) | no | outdoor |  |
 | `quantity` | INTEGER | no | 1 |  |
 | `productive_until` | DATE | no |  |  |
 | `health_status` | VARCHAR(16) | no | unknown |  |
@@ -151,9 +148,9 @@ erDiagram
 | `created_at` | timestamptz | no | now() |  |
 | `updated_at` | timestamptz | no | now() |  |
 
-**Constraints:** `ck_plants_quantity_positive`: `quantity >= 1`; `ck_plants_irrigation_schedule`: `irrigation_schedule IN ('daily', 'every_3_5_days', 'weekly', 'never')`; `ck_plants_outcome`: `outcome IN ('completed', 'ended_early', 'failed')`; `ck_plants_commodity_code`: `commodity_code IN ('mango', 'citrus', 'tomato')`; `ck_plants_end_reason`: `end_reason IN ('productive_period_over', 'disease', 'cut_down', 'died_other', 'other')`; `ck_plants_disease_end_has_cause`: `end_reason IS DISTINCT FROM 'disease' OR cardinality(coalesce(end_disease_codes, '{}')) > 0 OR btrim(coalesce(end_cause_note, '')) <> ''`; `ck_plants_ended_with_outcome`: `(ended_at IS NULL) = (outcome IS NULL)`; `ck_plants_ended_with_reason`: `(ended_at IS NULL) = (end_reason IS NULL)`; `ck_plants_planting_material`: `planting_material IN ('grafted', 'seed', 'other')`; `ck_plants_placement`: `placement IN ('indoor', 'outdoor')`; `ck_plants_health_status`: `health_status IN ('healthy', 'at_risk', 'sick', 'recovering', 'unknown')`; unique `uq_plants_user_code` (`user_id, code`).
+**Constraints:** `ck_plants_quantity_positive`: `quantity >= 1`; `ck_plants_irrigation_schedule`: `irrigation_schedule IN ('daily', 'every_3_5_days', 'weekly', 'never')`; `ck_plants_outcome`: `outcome IN ('completed', 'ended_early', 'failed')`; `ck_plants_commodity_code`: `commodity_code IN ('mango', 'citrus', 'tomato')`; `ck_plants_end_reason`: `end_reason IN ('productive_period_over', 'disease', 'cut_down', 'died_other', 'other')`; `ck_plants_disease_end_has_cause`: `end_reason IS DISTINCT FROM 'disease' OR cardinality(coalesce(end_disease_codes, '{}')) > 0 OR btrim(coalesce(end_cause_note, '')) <> ''`; `ck_plants_ended_with_outcome`: `(ended_at IS NULL) = (outcome IS NULL)`; `ck_plants_ended_with_reason`: `(ended_at IS NULL) = (end_reason IS NULL)`; `ck_plants_planting_material`: `planting_material IN ('grafted', 'seed', 'other')`; `ck_plants_health_status`: `health_status IN ('healthy', 'at_risk', 'sick', 'recovering', 'unknown')`; unique `uq_plants_user_code` (`user_id, code`).
 
-**Indexes:** `ix_plants_commodity_code` (`commodity_code`); `ix_plants_farm_id` (`farm_id`); `ix_plants_user_ended` (`user_id, ended_at`); `ix_plants_placement` (`placement`); `ix_plants_user_id` (`user_id`); `ix_plants_health_status` (`health_status`); `ix_plants_farm_ended` (`farm_id, ended_at`).
+**Indexes:** `ix_plants_commodity_code` (`commodity_code`); `ix_plants_farm_id` (`farm_id`); `ix_plants_user_ended` (`user_id, ended_at`); `ix_plants_user_id` (`user_id`); `ix_plants_health_status` (`health_status`); `ix_plants_farm_ended` (`farm_id, ended_at`).
 
 ### `harvest_records`
 
@@ -496,5 +493,7 @@ erDiagram
 | `0006` | `0006_post_meeting.py` | `plants.nursery_started_at`, `plants.placement`, `irrigation_changes`, `harvest_records.quality`/`success_pct`. Kolom lama `farms.placement`/`archived_at` sengaja dibiarkan. |
 | `0007` | `0007_scan_commodity_default.py` | Default `scans.commodity_code` `chili` → `mango`; baris lama tidak diubah. |
 | `0008` | `0008_user_avatar.py` | `users.avatar_key` (object key foto profil, nullable). |
+| `0009` | `0009_tomato_commodity.py` | Ganti komoditas ketiga dari stroberi ke tomat. |
+| `0010` | `0010_remove_placement.py` | Hapus `farms.placement` dan `plants.placement` beserta CHECK/index; konsep indoor/outdoor tidak dipakai lagi. |
 
-Migrasi `0001`–`0006` adalah riwayat; jangan menghapus kolom warisan yang masih dipakai uji migrasi. `0007` hanya mengubah default, bukan data. `0008` hanya menambah kolom nullable.
+Migrasi `0001`–`0006` adalah riwayat; jangan menghapus kolom warisan yang masih dipakai uji migrasi. `0007` hanya mengubah default, bukan data. `0008` hanya menambah kolom nullable. `0010` adalah penghapusan yang disengaja; downgrade menambahkan kolom kembali dengan default `outdoor`.
