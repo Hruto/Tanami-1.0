@@ -9,7 +9,7 @@ class HarvestPlantCard extends StatelessWidget {
   final String location;
   final String harvest;
   final int? maturity;
-  final bool healthy;
+  final bool? healthy;
   final String iconAsset;
   final String? imageUrl;
 
@@ -42,6 +42,19 @@ class HarvestPlantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = maturity?.clamp(0, 100);
+
+    // Status kesehatan tanaman
+    final statusText = healthy == null
+        ? 'Belum terdeteksi'
+        : healthy!
+            ? 'Sehat'
+            : 'Sakit';
+
+    final statusColor = healthy == null
+        ? AppColors.grey
+        : healthy!
+            ? AppColors.mediumGreen
+            : AppColors.red;
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -98,6 +111,7 @@ class HarvestPlantCard extends StatelessWidget {
 
                 const SizedBox(height: 3),
 
+                // Lokasi tanaman
                 Row(
                   children: [
                     const Icon(
@@ -129,13 +143,11 @@ class HarvestPlantCard extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: healthy
-                        ? AppColors.mediumGreen
-                        : AppColors.red,
+                    color: statusColor,
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: Text(
-                    healthy ? 'Sehat' : 'Sakit',
+                    statusText,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -148,6 +160,8 @@ class HarvestPlantCard extends StatelessWidget {
                 // Estimasi panen
                 Text(
                   harvest,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 10,
                     color: AppColors.grey,
