@@ -1,124 +1,89 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/constant/app_colors.dart';
+import '../../disease/screens/disease_camera_page.dart';
 import '../models/plant_model.dart';
+
+import 'package:camera/camera.dart';
+
+import 'camera_capture_page.dart';
+import '../../disease/screens/disease_preview_page.dart';
 
 class PlantDetailPage extends StatelessWidget {
   final PlantModel plant;
 
-  // Callback untuk menghubungkan fitur dari halaman lain.
-  final VoidCallback? onScanDisease;
-  final VoidCallback? onEditWatering;
-  final VoidCallback? onHarvest;
-  final VoidCallback? onEndTracking;
-
   const PlantDetailPage({
     super.key,
     required this.plant,
-    this.onScanDisease,
-    this.onEditWatering,
-    this.onHarvest,
-    this.onEndTracking,
   });
 
   static const String _icons = 'assets/icons';
   static const String _images = 'assets/images';
+  Future<void> _startDiseaseScan(BuildContext context) async {
+    final XFile? image = await Navigator.push<XFile>(
+      context,
+      MaterialPageRoute<XFile>(
+        builder: (_) => const CameraCapturePage(),
+      ),
+    );
 
-  // ============================================================
-  // HELPER
-  // ============================================================
+    if (!context.mounted || image == null) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DiseasePreviewPage(image: image),
+      ),
+    );
+  }
 
   String _formatDate(String? value) {
-    if (value == null || value.isEmpty) {
-      return '-';
-    }
+    if (value == null || value.isEmpty) return '-';
 
     try {
       final date = DateTime.parse(value);
-
       const months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'Mei',
-        'Jun',
-        'Jul',
-        'Agu',
-        'Sep',
-        'Okt',
-        'Nov',
-        'Des',
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
       ];
-
       return '${date.day} ${months[date.month - 1]} ${date.year}';
     } catch (_) {
       return value;
     }
   }
 
-  String _getPlacement() {
+  String _placementText() {
     switch (plant.placement?.toLowerCase()) {
       case 'indoor':
-        return 'Dalam Ruangan';
+        return 'Indoor';
       case 'outdoor':
-        return 'Luar Ruangan';
+        return 'Outdoor';
       default:
-        return 'Belum tersedia';
+        return 'Lokasi belum diatur';
     }
   }
 
-  String _getHealthText() {
-    if (plant.isHealthy == true) {
-      return 'Sehat';
-    }
-
-    if (plant.isHealthy == false) {
-      return 'Sakit';
-    }
-
+  String _healthText() {
+    if (plant.isHealthy == true) return 'Sehat';
+    if (plant.isHealthy == false) return 'Sakit';
     return 'Belum diketahui';
   }
 
-  Color _getHealthColor() {
-    if (plant.isHealthy == true) {
-      return AppColors.mediumGreen;
-    }
-
-    if (plant.isHealthy == false) {
-      return AppColors.red;
-    }
-
+  Color _healthColor() {
+    if (plant.isHealthy == true) return AppColors.mediumGreen;
+    if (plant.isHealthy == false) return AppColors.red;
     return AppColors.grey;
   }
 
-  int _getHarvestProgress() {
-    final maturity = plant.maturity;
-
-    if (maturity < 0) return 0;
-    if (maturity > 100) return 100;
-
-    return maturity;
+  int _harvestProgress() {
+    final value = plant.maturity;
+    if (value < 0) return 0;
+    if (value > 100) return 100;
+    return value;
   }
 
-  void _showMessage(
-    BuildContext context,
-    String message,
-  ) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
-  }
-
-  Widget _svg(
-    String path, {
-    double size = 24,
-    Color? color,
-  }) {
+  Widget _svg(String path, {double size = 24, Color? color}) {
     return SvgPicture.asset(
       path,
       width: size,
@@ -126,269 +91,229 @@ class PlantDetailPage extends StatelessWidget {
       fit: BoxFit.contain,
       colorFilter: color == null
           ? null
-          : ColorFilter.mode(
-              color,
-              BlendMode.srcIn,
-            ),
+          : ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
 
-  // ============================================================
-  // HEADER
-  // ============================================================
-
-  Widget _buildHeader(BuildContext context) {
+  Widget _header(BuildContext context) {
     return Container(
-      height: 110,
+      height: 134,
       width: double.infinity,
       decoration: const BoxDecoration(
         color: AppColors.mediumGreen,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
         ),
       ),
       child: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-          ),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: _svg(
-                  '$_icons/back.svg',
-                  size: 25,
-                  color: Colors.white,
-                ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              left: 20,
+              top: 18,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: _svg('$_icons/back.svg', size: 25, color: Colors.white),
               ),
-              const SizedBox(width: 14),
-              const Expanded(
-                child: Text(
-                  'Detail Tanaman',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+            ),
+            Positioned(
+              top: 15,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/logo_header.svg',
+                    height: 28,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 5),
+                  const Text(
+                    'Detail Tanaman',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
-              SvgPicture.asset(
-                'assets/images/logo_header.svg',
-                height: 30,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ============================================================
-  // PLANT INFORMATION
-  // ============================================================
-
-  Widget _buildPlantHero() {
+  Widget _plantHero() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        0,
-      ),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(18, 4, 18, 14),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: SizedBox(
-              height: 170,
-              width: double.infinity,
-              child: plant.coverPhotoUrl != null &&
-                      plant.coverPhotoUrl!.isNotEmpty
-                  ? Image.network(
-                      plant.coverPhotoUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) {
-                        return _buildPhotoPlaceholder();
-                      },
-                    )
-                  : _buildPhotoPlaceholder(),
-            ),
+          SizedBox(
+            height: 210,
+            width: double.infinity,
+            child: plant.coverPhotoUrl != null &&
+                    plant.coverPhotoUrl!.isNotEmpty
+                ? Image.network(
+                    plant.coverPhotoUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _photoPlaceholder(),
+                  )
+                : _photoPlaceholder(),
           ),
-
-          const SizedBox(height: 14),
-
-          Text(
-            plant.label.isNotEmpty
-                ? plant.label
-                : plant.displayName,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: AppColors.darkGreen,
-            ),
-          ),
-
-          const SizedBox(height: 5),
-
-          Text(
-            plant.commodityLabel,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.grey,
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              _buildStatusChip(
-                _getHealthText(),
-                _getHealthColor(),
-              ),
-              _buildStatusChip(
-                _getPlacement(),
-                AppColors.mediumGreen,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildInfoItem(
-                  'Tanggal Tanam',
-                  _formatDate(plant.plantedAt),
-                  '$_icons/calendar.svg',
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 13, 16, 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        plant.label.isNotEmpty ? plant.label : plant.displayName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          height: 1.1,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.darkGreen,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    _statusChip(_healthText(), _healthColor()),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildInfoItem(
-                  'Usia Tanaman',
-                  '${plant.ageDays} hari',
-                  '$_icons/calendar.svg',
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        plant.commodityLabel,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.grey,
+                        ),
+                      ),
+                    ),
+                    _svg('$_icons/placement.svg', size: 15, color: AppColors.grey),
+                    const SizedBox(width: 5),
+                    Text(
+                      _placementText(),
+                      style: const TextStyle(fontSize: 11, color: AppColors.grey),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 17),
+                _detailInfoRow('Tanggal Tanam', _formatDate(plant.plantedAt)),
+                const SizedBox(height: 4),
+                _detailInfoRow('Usia Tanaman', '${plant.ageDays} Hari'),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPhotoPlaceholder() {
+  Widget _photoPlaceholder() {
     return Container(
       color: AppColors.lightGreen,
       child: const Center(
-        child: Icon(
-          Icons.eco_outlined,
-          size: 60,
-          color: AppColors.mediumGreen,
-        ),
+        child: Icon(Icons.eco_outlined, size: 62, color: AppColors.mediumGreen),
       ),
     );
   }
 
-  Widget _buildStatusChip(
-    String text,
-    Color color,
-  ) {
+  Widget _statusChip(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 13,
-        vertical: 7,
-      ),
+      constraints: const BoxConstraints(minWidth: 54),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        color: color,
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Text(
         text,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
-  Widget _buildInfoItem(
-    String title,
-    String value,
-    String iconPath,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _svg(
-                iconPath,
-                size: 16,
-                color: AppColors.mediumGreen,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.grey,
-                  ),
-                ),
-              ),
-            ],
+  Widget _detailInfoRow(String label, String value) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: AppColors.grey),
           ),
-          const SizedBox(height: 8),
-          Text(
+        ),
+        Flexible(
+          child: Text(
             value,
+            textAlign: TextAlign.right,
             style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.navy,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.darkGreen,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // ============================================================
-  // SECTION TITLE & CARD
-  // ============================================================
+  Widget _card({required Widget child, double? minHeight}) {
+    return Container(
+      constraints: minHeight == null
+          ? null
+          : BoxConstraints(minHeight: minHeight),
+      margin: const EdgeInsets.fromLTRB(18, 0, 18, 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
@@ -402,304 +327,137 @@ class PlantDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCard({
-    required Widget child,
-  }) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(
-        20,
-        0,
-        20,
-        14,
-      ),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-
-  // ============================================================
-  // HARVEST
-  // ============================================================
-
-  Widget _buildHarvestCard() {
-    final progress = _getHarvestProgress();
-
-    return _buildCard(
+  Widget _harvestCard() {
+    final progress = _harvestProgress();
+    return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Progres Panen'),
-
+          _sectionTitle('Progres Menuju Panen'),
+          const Text(
+            'Estimasi tanggal panen:',
+            style: TextStyle(fontSize: 11, color: AppColors.grey),
+          ),
+          const SizedBox(height: 5),
           Row(
             children: [
               Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: LinearProgressIndicator(
-                    value: progress / 100,
-                    minHeight: 10,
-                    backgroundColor:
-                        AppColors.lightGreen.withValues(
-                      alpha: 0.5,
-                    ),
-                    valueColor:
-                        const AlwaysStoppedAnimation(
-                      AppColors.mediumGreen,
-                    ),
+                child: Text(
+                  _formatDate(plant.expectedHarvestMin),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.darkGreen,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                '$progress%',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
                   color: AppColors.mediumGreen,
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          Row(
-            children: [
-              _svg(
-                '$_images/harvest.svg',
-                size: 22,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Estimasi Panen',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.grey,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                _formatDate(plant.expectedHarvestMin),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.navy,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // WATERING
-  // ============================================================
-
-  Widget _buildWateringCard(BuildContext context) {
-    return _buildCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _buildSectionTitle(
-                  'Jadwal Penyiraman',
-                ),
-              ),
-              TextButton(
-                onPressed: onEditWatering ??
-                    () {
-                      _showMessage(
-                        context,
-                        'Pengaturan penyiraman belum tersedia.',
-                      );
-                    },
                 child: const Text(
-                  'Atur',
+                  'Pantau tanaman',
                   style: TextStyle(
-                    color: AppColors.mediumGreen,
+                    color: Colors.white,
+                    fontSize: 10,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: LinearProgressIndicator(
+              value: progress / 100,
+              minHeight: 8,
+              backgroundColor: AppColors.lightGreen,
+              valueColor: const AlwaysStoppedAnimation(AppColors.mediumGreen),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '$progress% progress',
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.grey,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 7),
+          const Text(
+            'Terus pantau dan rawat tanamanmu agar siap menghasilkan panen terbaik!',
+            style: TextStyle(fontSize: 11, color: AppColors.grey, height: 1.25),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _wateringCard(BuildContext context) {
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
             children: [
-              Expanded(
-                child: _buildWateringInfo(
-                  'Penyiraman Terakhir',
-                  '-',
+              Expanded(child: _sectionTitle('Jadwal Penyiraman')),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.mediumGreen,
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildWateringInfo(
-                  'Penyiraman Berikutnya',
-                  _formatDate(plant.nextWateringOn),
+                child: Text(
+                  plant.irrigationSchedule?.toString() ?? 'Jadwal',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWateringInfo(
-    String title,
-    String value,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _svg(
-            '$_images/watering.svg',
-            size: 22,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 10,
-              color: AppColors.grey,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.navy,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // EMPTY STATE
-  // ============================================================
-
-  Widget _buildEmptySection(
-    String title,
-    String imagePath,
-    String message,
-  ) {
-    return _buildCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle(title),
-
-          Center(
-            child: Column(
-              children: [
-                SvgPicture.asset(
-                  imagePath,
-                  height: 115,
-                  fit: BoxFit.contain,
+          Row(
+            children: [
+              Expanded(
+                child: _wateringInfo(
+                  'Terakhir disiram',
+                  '-',
+                  'assets/images/watering_can.svg',
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey,
-                  ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _wateringInfo(
+                  'Penyiraman berikutnya',
+                  _formatDate(plant.nextWateringOn),
+                  'assets/images/watering.svg',
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // HEALTH HISTORY & DISEASE SCAN
-  // ============================================================
-
-  Widget _buildHealthSection(BuildContext context) {
-    return _buildCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle('Riwayat Kesehatan'),
-
-          Center(
-            child: Column(
-              children: [
-                SvgPicture.asset(
-                  '$_images/empty_health.svg',
-                  height: 110,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Belum ada riwayat kesehatan tanaman.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
+          const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: onScanDisease ??
-                  () {
-                    _showMessage(
-                      context,
-                      'Halaman Pindai Penyakit belum terhubung di branch ini.',
-                    );
-                  },
-              icon: _svg(
-                '$_images/scan.svg',
-                size: 20,
-                color: Colors.white,
-              ),
-              label: const Text('Pindai Penyakit'),
+            child: ElevatedButton(
+              onPressed: () => _message(context, 'Pengaturan jadwal penyiraman akan dihubungkan.'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.mediumGreen,
                 foregroundColor: Colors.white,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 13,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+              ),
+              child: const Text(
+                'Edit Jadwal Penyiraman',
+                style: TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
           ),
@@ -708,91 +466,276 @@ class PlantDetailPage extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // BOTTOM ACTION BUTTONS
-  // ============================================================
-
-  Widget _buildActionButton({
-    required String label,
-    required String iconPath,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Expanded(
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: _svg(
-          iconPath,
-          size: 20,
-          color: Colors.white,
-        ),
-        label: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(
-            vertical: 14,
-            horizontal: 8,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomActions(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        20,
-        4,
-        20,
-        20,
+  Widget _wateringInfo(String title, String value, String image) {
+    return Container(
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: AppColors.lightGreen.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildActionButton(
-            label: 'Panen',
-            iconPath: '$_images/harvest.svg',
-            color: AppColors.orange,
-            onPressed: onHarvest ??
-                () {
-                  _showMessage(
-                    context,
-                    'Fitur panen belum tersedia.',
-                  );
-                },
-          ),
-          const SizedBox(width: 12),
-          _buildActionButton(
-            label: 'Akhiri Tracking',
-            iconPath: '$_images/end_track.svg',
-            color: AppColors.red,
-            onPressed: onEndTracking ??
-                () {
-                  _showMessage(
-                    context,
-                    'Fitur akhiri tracking belum tersedia.',
-                  );
-                },
+          _svg(image, size: 18, color: AppColors.grey),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 9, color: AppColors.grey)),
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.darkGreen,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ============================================================
-  // BUILD
-  // ============================================================
+  Widget _emptyCard({
+    required String title,
+    required String imagePath,
+    required String message,
+    required double minHeight,
+    Widget? action,
+    double imageHeight = 145,
+  }) {
+    return _card(
+      minHeight: minHeight,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle(title),
+          SizedBox(
+            height: 205,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    imagePath,
+                    height: imageHeight,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      height: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.darkGreen,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  const Text(
+                    'Mulai tambahkan aktivitas pertumbuhan tanamanmu untuk melihatnya di sini.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 10,
+                      height: 1.2,
+                      color: AppColors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (action != null) ...[
+            const SizedBox(height: 12),
+            action,
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _scanButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+      onPressed: () => _startDiseaseScan(context),
+        icon: _svg('$_images/scan.svg', size: 20, color: Colors.white),
+        label: const Text(
+          'Pindai Penyakit',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.mediumGreen,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 13),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _healthCard(BuildContext context) {
+    return _emptyCard(
+      title: 'Riwayat Kesehatan Tanaman',
+      imagePath: '$_images/empty_health.svg',
+      message: 'Belum ada riwayat kesehatan tanaman',
+      minHeight: 335,
+      imageHeight: 145,
+      action: _scanButton(context),
+    );
+  }
+
+  Widget _activityCard() {
+    return _emptyCard(
+      title: 'Aktivitas Terakhir',
+      imagePath: '$_images/empty_activity.svg',
+      message: 'Belum ada aktivitas',
+      minHeight: 260,
+      imageHeight: 130,
+    );
+  }
+
+  Widget _journalCard(BuildContext context) {
+    return _emptyCard(
+      title: 'Jurnal Tanaman',
+      imagePath: '$_images/empty_journal.svg',
+      message: 'Belum ada riwayat pertumbuhan',
+      minHeight: 335,
+      imageHeight: 145,
+      action: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: () => _message(context, 'Fitur unggah foto jurnal akan dihubungkan.'),
+          icon: _svg('$_images/camera.svg', size: 20, color: Colors.white),
+          label: const Text(
+            'Unggah Foto',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.mediumGreen,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 13),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _bottomActions(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 2, 18, 18),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _message(context, 'Fitur panen akan dihubungkan.'),
+              icon: _svg('$_images/harvest.svg', size: 20, color: Colors.white),
+              label: const Text('Panen', style: TextStyle(fontWeight: FontWeight.w700)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.mediumGreen,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _message(context, 'Fitur akhiri tracking akan dihubungkan.'),
+              icon: _svg('$_images/end_track.svg', size: 20, color: AppColors.red),
+              label: const Text(
+                'Akhiri Tracking',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.errorBackground,
+                foregroundColor: AppColors.red,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bottomNavigation() {
+    const items = [
+      (Icons.home_outlined, 'Beranda'),
+      (Icons.park_outlined, 'Kebun'),
+      (Icons.history, 'Riwayat'),
+      (Icons.forum_outlined, 'Forum'),
+      (Icons.person_outline, 'Profil'),
+    ];
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.14),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(items.length, (index) {
+          final item = items[index];
+          final selected = index == 1;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                item.$1,
+                size: 25,
+                color: selected ? AppColors.mediumGreen : AppColors.grey,
+              ),
+              const SizedBox(height: 3),
+              Text(
+                item.$2,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: selected ? AppColors.mediumGreen : AppColors.grey,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  void _message(BuildContext context, String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -800,41 +743,26 @@ class PlantDetailPage extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          _buildHeader(context),
-
+          _header(context),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.only(
-                bottom: 10,
-              ),
+              padding: const EdgeInsets.only(top: 0, bottom: 8),
               children: [
-                _buildPlantHero(),
-
-                const SizedBox(height: 16),
-
-                _buildHarvestCard(),
-
-                _buildWateringCard(context),
-
-                _buildEmptySection(
-                  'Jurnal Tanaman',
-                  '$_images/empty_journal.svg',
-                  'Belum ada jurnal pertumbuhan tanaman.',
-                ),
-
-                _buildHealthSection(context),
-
-                _buildEmptySection(
-                  'Aktivitas Terbaru',
-                  '$_images/empty_activity.svg',
-                  'Belum ada aktivitas terbaru.',
-                ),
-
-                _buildBottomActions(context),
+                _plantHero(),
+                _harvestCard(),
+                _wateringCard(context),
+                _journalCard(context),
+                _healthCard(context),
+                _activityCard(),
+                _bottomActions(context),
               ],
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: _bottomNavigation(),
       ),
     );
   }
