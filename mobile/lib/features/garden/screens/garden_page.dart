@@ -8,6 +8,7 @@ import '../services/plant_service.dart';
 import 'add_plant_page.dart';
 
 import '../widgets/garden_plant_card.dart';
+import 'plant_detail_page.dart';
 
 class GardenPage extends StatefulWidget {
   final String? farmId;
@@ -280,22 +281,34 @@ Future<void> _openAddPlantPage() async {
   }
 
   // Menampilkan card tanaman
-  Widget _buildPlantCard(PlantModel plant) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: GardenPlantCard(
-        name: plant.label.isNotEmpty
-            ? plant.label
-            : plant.displayName,
-        location: _getLocation(plant),
-        harvest: _getHarvestText(plant),
-        maturity: plant.maturity,
-        healthy: plant.isHealthy,
-        iconAsset: _plantIcon,
-        imageUrl: plant.coverPhotoUrl,
-      ),
-    );
-  }
+Widget _buildPlantCard(PlantModel plant) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: GardenPlantCard(
+      name: plant.label.isNotEmpty
+          ? plant.label
+          : plant.displayName,
+      location: _getLocation(plant),
+      harvest: _getHarvestText(plant),
+      maturity: plant.maturity,
+      healthy: plant.isHealthy,
+      iconAsset: _plantIcon,
+      imageUrl: plant.coverPhotoUrl,
+
+      // Buka Detail Plant ketika card diklik.
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PlantDetailPage(
+              plant: plant,
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
 
   // Empty state
   Widget _buildEmptyState() {

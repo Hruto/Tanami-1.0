@@ -36,7 +36,6 @@ class _AddPlantPageState extends State<AddPlantPage> {
   // Asset icons
   static const String _backIcon = 'assets/icons/back.svg';
   static const String _uploadIcon = 'assets/icons/image_add.svg';
-  static const String _nameIcon = 'assets/icons/Pencil.svg';
   static const String _calendarIcon = 'assets/icons/calendar.svg';
   static const String _pencilIcon = 'assets/icons/pencil.svg';
   static const String _treePalmIcon = 'assets/icons/tree_Palm.svg';
@@ -318,106 +317,7 @@ ThemeData _datePickerTheme(BuildContext context) {
   });
 }
 
-Future<void> _showPhotoSourcePicker() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(24),
-        ),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.lightGreen,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Pilih Foto Tanaman',
-                  style: TextStyle(
-                    fontFamily: 'Alexandria',
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.darkGreen,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                _photoSourceOption(
-                  icon: Icons.camera_alt_outlined,
-                  label: 'Ambil Foto',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickImage(ImageSource.camera);
-                  },
-                ),
-                const SizedBox(height: 10),
-                _photoSourceOption(
-                  icon: Icons.photo_library_outlined,
-                  label: 'Pilih dari Galeri',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickImage(ImageSource.gallery);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-  Widget _photoSourceOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 15,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.fieldBackground,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: AppColors.mediumGreen,
-              size: 23,
-            ),
-            const SizedBox(width: 14),
-            Text(
-              label,
-              style: const TextStyle(
-                fontFamily: 'Alexandria',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.darkGreen,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  // Pilih foto dari kamera atau galeri
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final image = await _imagePicker.pickImage(
@@ -435,6 +335,7 @@ Future<void> _showPhotoSourcePicker() async {
       if (!mounted) return;
       _showMessage('Gagal memilih foto: $e');
     }
+    
   }
   String? get _nameError {
     if (!_showValidationErrors) return null;
@@ -546,6 +447,8 @@ Future<void> _showPhotoSourcePicker() async {
       }
     }
   }
+  @override
+  
   void dispose() {
     _nameController.dispose();
     _typeController.dispose();
