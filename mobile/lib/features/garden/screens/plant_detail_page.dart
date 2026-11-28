@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/constant/app_colors.dart';
-import '../../disease/screens/disease_camera_page.dart';
 import '../models/plant_model.dart';
-
 import 'package:camera/camera.dart';
 
 import 'camera_capture_page.dart';
 import '../../disease/screens/disease_preview_page.dart';
+import '../../disease/screens/disease_camera_page.dart';
+
 
 class PlantDetailPage extends StatelessWidget {
   final PlantModel plant;
@@ -20,23 +20,14 @@ class PlantDetailPage extends StatelessWidget {
 
   static const String _icons = 'assets/icons';
   static const String _images = 'assets/images';
-  Future<void> _startDiseaseScan(BuildContext context) async {
-    final XFile? image = await Navigator.push<XFile>(
-      context,
-      MaterialPageRoute<XFile>(
-        builder: (_) => const CameraCapturePage(),
-      ),
-    );
-
-    if (!context.mounted || image == null) return;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DiseasePreviewPage(image: image),
-      ),
-    );
-  }
+void _startDiseaseScan(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const DiseaseCameraPage(),
+    ),
+  );
+}
 
   String _formatDate(String? value) {
     if (value == null || value.isEmpty) return '-';
