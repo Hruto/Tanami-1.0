@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/constant/app_colors.dart';
 import '../../garden/screens/camera_capture_page.dart';
+import '../mocks/disease_mock_data.dart';
 import 'disease_result_page.dart';
 
-class DiseasePreviewPage extends StatelessWidget {
+class DiseasePreviewPage extends StatefulWidget {
   final XFile image;
 
   const DiseasePreviewPage({
@@ -16,7 +18,26 @@ class DiseasePreviewPage extends StatelessWidget {
     required this.image,
   });
 
-  Future<void> _retakePhoto(BuildContext context) async {
+  @override
+  State<DiseasePreviewPage> createState() =>
+      _DiseasePreviewPageState();
+}
+
+class _DiseasePreviewPageState
+    extends State<DiseasePreviewPage> {
+  late XFile _image;
+
+  // Ganti path ini sesuai nama file background yang kamu punya.
+  static const String _backgroundAsset =
+      'assets/images/background.svg';
+
+  @override
+  void initState() {
+    super.initState();
+    _image = widget.image;
+  }
+
+  Future<void> _retakePhoto() async {
     final XFile? newImage = await Navigator.push<XFile>(
       context,
       MaterialPageRoute<XFile>(
@@ -24,19 +45,209 @@ class DiseasePreviewPage extends StatelessWidget {
       ),
     );
 
-    if (!context.mounted || newImage == null) return;
+    if (!mounted || newImage == null) return;
 
-    // Kembalikan foto baru ke DiseaseCameraPage.
-    Navigator.pop(context, newImage);
+    setState(() {
+      _image = newImage;
+    });
   }
 
-  void _continueDetection(BuildContext context) {
-    Navigator.push(
+  Future<void> _continueDetection() async {
+    final response = DiseaseMockData.responseFor();
+
+    final bool? completed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) => const DiseaseResultPage(
-          status: 'confident',
+      MaterialPageRoute<bool>(
+        builder: (_) => DiseaseResultPage(
+          image: _image,
+          response: response,
         ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (completed == true) {
+      Navigator.pop(context, true);
+    }
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 8,
+        left: 22,
+        right: 22,
+        bottom: 14,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.mediumGreen,
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(28),
+        ),
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 28,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.pop(context),
+                    icon: SvgPicture.asset(
+                      'assets/icons/back.svg',
+                      width: 25,
+                      height: 25,
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                ),
+                SvgPicture.asset(
+                  'assets/images/logo_header.svg',
+                  height: 25,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.white,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Pratinjau Gambar',
+            style: TextStyle(
+              fontFamily: 'Alexandria',
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: AppColors.background,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTip() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 14,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.lightGreen,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          SvgPicture.asset(
+            'assets/icons/leaf.svg',
+            width: 24,
+            height: 24,
+            colorFilter: const ColorFilter.mode(
+              AppColors.darkGreen,
+              BlendMode.srcIn,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Pastikan gambar terlihat jelas '
+              'dan fokus pada daun',
+              style: TextStyle(
+                fontFamily: 'Alexandria',
+                fontSize: 11,
+                height: 1.4,
+                color: AppColors.darkGreen,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildButton({
+    required String text,
+    required VoidCallback onPressed,
+    bool primary = false,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 58,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary
+              ? AppColors.mediumGreen
+              : AppColors.lightGreen,
+          foregroundColor: primary
+              ? Colors.white
+              : AppColors.grey,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontFamily: 'Alexandria',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhoto() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final photoHeight =
+        (screenHeight * 0.48).clamp(340.0, 500.0);
+
+    return Container(
+      width: double.infinity,
+      height: photoHeight,
+      decoration: BoxDecoration(
+        color: AppColors.lightGreen,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Image.file(
+        File(_image.path),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return const Center(
+            child: Icon(
+              Icons.broken_image_outlined,
+              size: 50,
+              color: AppColors.grey,
+            ),
+          );
+        },
       ),
     );
   }
@@ -45,138 +256,66 @@ class DiseasePreviewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.darkGreen,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background image milik Tanami.
+          Image.asset(
+            _backgroundAsset,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return const SizedBox.shrink();
+            },
           ),
-        ),
-        title: const Text(
-          'Preview Foto',
-          style: TextStyle(
-            fontFamily: 'Alexandria',
-            fontWeight: FontWeight.w600,
-            color: AppColors.darkGreen,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Text(
-                'Pastikan foto tanaman terlihat jelas '
-                'sebelum melakukan deteksi penyakit.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Alexandria',
-                  fontSize: 14,
-                  height: 1.6,
-                  color: AppColors.grey,
-                ),
-              ),
 
-              const SizedBox(height: 24),
+          Column(
+            children: [
+              _buildHeader(),
 
               Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AppColors.lightGreen.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(24),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    20,
+                    20,
+                    20,
+                    12,
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.file(
-                    File(image.path),
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.broken_image_outlined,
-                              size: 48,
-                              color: AppColors.grey,
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              'Foto tidak dapat ditampilkan.',
-                              style: TextStyle(
-                                fontFamily: 'Alexandria',
-                                color: AppColors.grey,
-                              ),
-                            ),
-                          ],
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              _buildPhoto(),
+                              const SizedBox(height: 18),
+                              _buildTip(),
+                              const SizedBox(height: 12),
+                            ],
+                          ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ),
+                      ),
 
-              const SizedBox(height: 24),
+                      const SizedBox(height: 10),
 
-              // FOTO ULANG
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: OutlinedButton(
-                  onPressed: () => _retakePhoto(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.mediumGreen,
-                    side: const BorderSide(
-                      color: AppColors.mediumGreen,
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text(
-                    'Foto Ulang',
-                    style: TextStyle(
-                      fontFamily: 'Alexandria',
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
+                      _buildButton(
+                        text: 'Lanjut Analisis',
+                        primary: true,
+                        onPressed: _continueDetection,
+                      ),
 
-              const SizedBox(height: 12),
+                      const SizedBox(height: 10),
 
-              // LANJUTKAN
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: () => _continueDetection(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.mediumGreen,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text(
-                    'Lanjutkan',
-                    style: TextStyle(
-                      fontFamily: 'Alexandria',
-                      fontWeight: FontWeight.w600,
-                    ),
+                      _buildButton(
+                        text: 'Foto Ulang',
+                        onPressed: _retakePhoto,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
